@@ -5,6 +5,13 @@ terraform {
       version = "3.64.2"
     }
   }
+  backend "s3" {
+    bucket = "terraformstatebucket-franco-123123498374"
+    key = "global/s3/terraform.tfstate"
+    region = "us-east-1"
+    dynamodb_table = "terraform_state_locks"
+    encrypt = true
+  }
 }
 provider "aws" {
   profile = "default"
