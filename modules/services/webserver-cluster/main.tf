@@ -5,16 +5,17 @@ terraform {
       version = "3.64.2"
     }
   }
+  backend "s3" {
+    bucket = "terraformstatebucket-franco-123123498374"
+    key = "stage/services/webserver-cluster/terraform.tfstate"
+    region = "us-east-1"
+    dynamodb_table = "terraform_state_locks"
+    encrypt = true
+  }
 }
 provider "aws" {
   profile = "default"
   region  = "us-east-1"
-}
-
-variable "server_port" {
-  description = "The port the server will use for http requests"
-  type = number
-  default = 80
 }
 
 data "aws_vpc" "default" {
@@ -24,28 +25,16 @@ data "aws_vpc" "default" {
 data "aws_subnet_ids" "default" {
   vpc_id = data.aws_vpc.default.id
 }
-
-/*
-resource "aws_instance" "example" {
-  ami           = "ami-04ad2567c9e3d7893"
-  instance_type = "t2.micro"
-  vpc_security_group_ids = [aws_security_group.instance.id]
-
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo yum install -y httpd
-              sudo systemctl start httpd
-              systemctl start httpd.service
-              systemctl enable httpd.service
-              echo “Hello World from $(hostname -f)” > /var/www/html/index.html
-              EOF
-  tags = {
-    Name = "terraform example"
+data "terraform_remote_state" "db" {
+  backend = "s3"
+  config {
+    bucket = var.db_remote_state_bucket
+    key = var.db_remote_state_key
+    region = "us-east-1"
   }
 }
-*/
 resource "aws_security_group" "instance" {
-  name = "terraform example-instance"
+  name = "${var.cluster_name}-alb"
 
   ingress {
     from_port = var.server_port
@@ -68,7 +57,7 @@ resource "aws_security_group" "instance" {
 }
 
 resource "aws_security_group" "alb" {
-  name = "terraform-example-alb"
+  name = "${var.cluster_name}-alb"
 
   ingress {
     from_port = 80
@@ -141,7 +130,7 @@ resource "aws_lb_listener_rule" "asg" {
 
 resource "aws_launch_configuration" "example" {
   image_id      = "ami-04ad2567c9e3d7893"
-  instance_type = "t2.micro"
+  instance_type = var.instance_type
   security_groups = [aws_security_group.instance.id]
   user_data = <<-EOF
               #!/bin/bash
@@ -160,19 +149,16 @@ resource "aws_autoscaling_group" "example" {
   vpc_zone_identifier = data.aws_subnet_ids.default.ids
   target_group_arns = [aws_lb_target_group.asg.arn]
   health_check_type = "ELB"
-  max_size = 3
-  min_size = 2
+  max_size = var.max_size
+  min_size = var.min_size
 
   tag {
     key                 = "Name"
     propagate_at_launch = true
-    value               = "terraform-asg-example"
+    value               = "${var.cluster_name}-asg"
   }
 }
-output "alb_dns_name" {
-  value = aws_lb.example.dns_name
-  description = "The domain name of the load balancer"
-}
+
 
 
 
