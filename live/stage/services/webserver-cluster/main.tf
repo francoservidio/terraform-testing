@@ -12,7 +12,7 @@ provider "aws" {
 }
 
 module "webserver_cluster" {
-  source = "../../../modules/services/webserver-cluster"
+  source = "github.com/francoservidio/alb-module-terraform//services/webserver-cluster?ref=V0.0.1"
   cluster_name = "stage-webservers"
   db_remote_state_bucket = "terraformstatebucket-franco-123123498374"
   db_remote_state_key = "stage/data-stores/mysql/terraform.tfstate"
