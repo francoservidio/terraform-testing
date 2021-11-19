@@ -1,4 +1,4 @@
-# Terraform "Hello, World" example
+# Terraform "ALb with ASG" example
 
 This folder contains a "Hello, World" example of a [Terraform](https://www.terraform.io/) configuration. The configuration 
 deploys a single server in an [Amazon Web Services (AWS) account](http://aws.amazon.com/). 
