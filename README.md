@@ -1,4 +1,4 @@
-# Terraform "ALb with ASG" example
+# Terraform "ALB with ASG" example
 
 This folder contains a ""ALb with ASG"" example of a [Terraform](https://www.terraform.io/) configuration. The configuration 
 deploys a single server in an [Amazon Web Services (AWS) account](http://aws.amazon.com/). 
